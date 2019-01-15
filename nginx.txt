@@ -1,0 +1,133 @@
+1. 反向代理
+	server {
+		#侦听的80端口
+		listen       80;
+		server_name  git.example.cn;
+		location / {
+			proxy_pass   http://localhost:3000;
+			#以下是一些反向代理的配置可删除
+			proxy_redirect             off;
+			#后端的Web服务器可以通过X-Forwarded-For获取用户真实IP
+			proxy_set_header           Host $host;
+			client_max_body_size       10m; #允许客户端请求的最大单文件字节数
+			client_body_buffer_size    128k; #缓冲区代理缓冲用户端请求的最大字节数
+			proxy_connect_timeout      300; #nginx跟后端服务器连接超时时间(代理连接超时)
+			proxy_send_timeout         300; #后端服务器数据回传时间(代理发送超时)
+			proxy_read_timeout         300; #连接成功后，后端服务器响应时间(代理接收超时)
+			proxy_buffer_size          4k; #设置代理服务器（nginx）保存用户头信息的缓冲区大小
+			proxy_buffers              4 32k; #proxy_buffers缓冲区，网页平均在32k以下的话，这样设置
+			proxy_busy_buffers_size    64k; #高负荷下缓冲大小（proxy_buffers*2）
+		}
+	}
+	
+2. 负载均衡
+		upstream gitlab {
+			ip_hash;
+			# upstream的负载均衡，weight是权重，可以根据机器配置定义权重。weigth参数表示权值，权值越高被分配到的几率越大。
+			server 192.168.122.11:8081 ;
+			server 127.0.0.1:82 weight=3;
+			server 127.0.0.1:83 weight=3 down;
+			server 127.0.0.1:84 weight=3; max_fails=3  fail_timeout=20s;
+			server 127.0.0.1:85 weight=4;;
+			keepalive 32;
+		}
+		server {
+			#侦听的80端口
+			listen       80;
+			server_name  git.example.cn;
+			location / {
+				proxy_pass   http://gitlab;    #在这里设置一个代理，和upstream的名字一样
+				#以下是一些反向代理的配置可删除
+				proxy_redirect             off;
+				#后端的Web服务器可以通过X-Forwarded-For获取用户真实IP
+				proxy_set_header           Host $host;
+				proxy_set_header           X-Real-IP $remote_addr;
+				proxy_set_header           X-Forwarded-For $proxy_add_x_forwarded_for;
+				client_max_body_size       10m;  #允许客户端请求的最大单文件字节数
+				client_body_buffer_size    128k; #缓冲区代理缓冲用户端请求的最大字节数
+				proxy_connect_timeout      300;  #nginx跟后端服务器连接超时时间(代理连接超时)
+				proxy_send_timeout         300;  #后端服务器数据回传时间(代理发送超时)
+				proxy_read_timeout         300;  #连接成功后，后端服务器响应时间(代理接收超时)
+				proxy_buffer_size          4k; #设置代理服务器（nginx）保存用户头信息的缓冲区大小
+				proxy_buffers              4 32k;# 缓冲区，网页平均在32k以下的话，这样设置
+				proxy_busy_buffers_size    64k; #高负荷下缓冲大小（proxy_buffers*2）
+				proxy_temp_file_write_size 64k; #设定缓存文件夹大小，大于这个值，将从upstream服务器传
+			}
+		}
+		
+3.简单的负载均衡
+			//轮询
+			upstream test {
+				server localhost:8080;
+				server localhost:8081;
+			}
+			//权重
+			upstream test {
+				server localhost:8080 weight=9;
+				server localhost:8081 weight=1;
+			}
+			//ip hash
+			upstream test {
+				ip_hash;
+				server localhost:8080;
+				server localhost:8081;
+			}
+			//fair
+			upstream backend {
+				fair;
+				server localhost:8080;
+				server localhost:8081;
+			}
+			//  url
+			upstream backend {
+				hash $request_uri;
+				hash_method crc32;
+				server localhost:8080;
+				server localhost:8081;
+			}
+		
+			server {
+				listen       81;
+				server_name  localhost;
+				client_max_body_size 1024M;
+			 
+				location / {
+					proxy_pass http://test;
+					proxy_set_header Host $host:$server_port;
+				}
+			}
+			
+
+server指令可选参数：
+
+weight：设置一个服务器的访问权重，数值越高，收到的请求也越多；
+fail_timeout：在这个指定的时间内服务器必须提供响应，如果在这个时间内没有收到响应，那么服务器将会被标记为down状态；
+max_fails：设置在fail_timeout时间之内尝试对一个服务器连接的最大次数，如果超过这个次数，那么服务器将会被标记为down;
+down：标记一个服务器不再接受任何请求；
+backup：一旦其他服务器宕机，那么有该标记的机器将会接收请求。
+
+
+屏蔽ip
+在nginx的配置文件nginx.conf中加入如下配置，可以放到http, server, location, limit_except语句块，需要注意相对路径，本例当中nginx.conf，blocksip.conf在同一个目录中。
+
+include blockip.conf;
+在blockip.conf里面输入内容，如：
+
+deny 165.91.122.67;
+
+deny IP;   # 屏蔽单个ip访问
+allow IP;  # 允许单个ip访问
+deny all;  # 屏蔽所有ip访问
+allow all; # 允许所有ip访问
+deny 123.0.0.0/8   # 屏蔽整个段即从123.0.0.1到123.255.255.254访问的命令
+deny 124.45.0.0/16 # 屏蔽IP段即从123.45.0.1到123.45.255.254访问的命令
+deny 123.45.6.0/24 # 屏蔽IP段即从123.45.6.1到123.45.6.254访问的命令
+
+# 如果你想实现这样的应用，除了几个IP外，其他全部拒绝
+allow 1.1.1.1; 
+allow 1.1.1.2;
+deny all; 
+
+
+
+https://github.com/jaywcjlove/nginx-tutorial#%E5%AE%89%E8%A3%85			
