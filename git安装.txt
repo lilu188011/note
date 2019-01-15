@@ -1,0 +1,15 @@
+1.git安装
+	配置: 
+		git config --global user.name xl18801
+		git config --global user.email xlfast@foxmail.com
+		
+2.ssh配置
+	ssh-keygen -t rsa -C "youremail@example.com"
+	
+3.提交git远程库步骤
+	git init
+	git add README.md
+	git commit -m "first commit"
+	git remote add origin git@github.com:lilu188011/note.git
+	git push -u origin master
+	
