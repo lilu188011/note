@@ -1,0 +1,44 @@
+long_query_time  mysql 默认阀值
+
+
+慢查询日志默认关闭：建议 开发调优打开  部署关闭
+
+
+show variables like '%slow_query_log%';
+
+
+临时开启 
+	set global slow_query_log = 1;
+
+永久开启
+	show_query_log=1
+	show_query_log_file=/var/lib/mysql/localhost-slow.log	
+
+
+阀值查看
+	show variables like '%long_query_time%';
+
+临时开启 
+	set global long_query_time = 1;
+
+
+查询慢查询sql总数
+	show global status like '%slow_queries%'
+
+具体sql
+	查看日志
+
+通过mysqlddumpslow 查看日志
+
+	-- 获取返回记录最多的3个sql
+		mysqlddumpslow -s -r -t 3 log文件
+
+	-- 获取访问次数最多的3个sql 
+		mysqlddumpslow -s c -t 3 log文件
+
+	--按照时间排序，前10缇欧包含left join查询语句的sql
+
+		mysqlddumpslow -s -t 10 -g  "left join" log文件
+
+
+https://me.csdn.net/why15732625998
