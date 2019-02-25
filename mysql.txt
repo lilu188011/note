@@ -39,6 +39,11 @@ show variables like '%slow_query_log%';
 	--按照时间排序，前10缇欧包含left join查询语句的sql
 
 		mysqlddumpslow -s -t 10 -g  "left join" log文件
+		
+key_len 计算方法
+		 uf8-8  一个字符两个字节
+		 null 	一个字节标识
+		 varchar() 可变  两个字节标识
 
 
 https://me.csdn.net/why15732625998
