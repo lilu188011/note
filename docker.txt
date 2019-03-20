@@ -1,0 +1,63 @@
+docker 常用命令
+
+docker images
+
+docker image ls 
+	docker image ls ubuntu:18.04
+	docker image ls -f since=mongo:3.2
+	docker image ls -f before=mongo:3.2
+	docker image ls -q (列出ID列表)
+	docker image ls --format "{{.ID}}: {{.Repository}}" 列出镜像ID、镜像仓库
+列出docker容器
+	docker container ls
+	docker container ls --all
+	docker container ls -aq
+用 docker image ls 命令来配合
+		docker image rm $(docker image ls -q redis)
+		docker image rm $(docker image ls -q -f before=mongo:3.2)
+		
+docker tag tagName originTagName  重命名	
+
+使用inspect命令查看详细信息 docker inspect imageId
+
+使用 history 命令查看镜像历史 docker history imageId
+
+查看docker 容器日志
+docker container logs [container ID or NAMES]
+docker container start
+docker container stop
+docker container restart
+
+进入容器
+docker exec -it 69d1 bash
+
+导出容器作为快照
+docker export 7691a814370e > ubuntu.tar
+
+导入容器快照
+docker export 7691a814370e > ubuntu.tar
+
+删除容器
+docker container rm trusting_newton
+
+docker image prune
+
+清理所有处于终止状态的容器
+docker container prune
+
+
+
+DockerFile 详解
+	FROM 指定基础镜像
+	RUN 执行命令
+	COPY 复制文件 COPY [--chown=<user>:<group>] <源路径>... <目标路径>
+	ENTRYPOINT  常用语启动前执行一系列命令
+	ENV 设置环境变量
+	EXPOSE 声明端口
+	WORKDIR 指定工作目录
+	USER 指定当前用户
+	
+
+
+
+
