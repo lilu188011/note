@@ -1,3 +1,4 @@
+https://www.cnblogs.com/liujuncm5/p/6713784.html
 #user  nobody;
 worker_processes  1;
 
