@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    schema: classpath:schema-all.sql
+    driver-class-name: com.mysql.jdbc.Driver
+    url:  jdbc:mysql://localhost:3306/test?useUnicode=true&useSSL=true
+    username: root
+    password: 123456
+  jpa:
+    hibernate:
+      ddl-auto:
+    show-sql: true
+  batch:
+    job:
+      enabled: false
